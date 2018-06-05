@@ -1,0 +1,34 @@
+---
+- hosts: all
+  remote_user: ec2-user
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Update yum packages
+      yum: name=* state=latest
+- hosts: web-servers
+  remote_user: ec2-user
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Install httpd
+      yum: name=httpd state=present
+    - name: Copy default html page
+      template: src=index.html dest=/var/www/html/
+      notify: restart httpd
+  handlers:
+    - name: restart httpd
+      service: name=httpd state=started enabled=yes
+- hosts: database-servers
+  remote_user: ec2-user
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Install mysql-server
+      yum: name=mysql-server state=present
+      notify: restart mysqld
+  handlers:
+    - name: restart mysqld
+      service: name=mysqld state=started enabled=yes
+
+
